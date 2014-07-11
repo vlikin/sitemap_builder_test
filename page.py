@@ -12,6 +12,7 @@ class Page(object):
 
     processed_pages = []
     domain_name = ''
+    max_depth = 3
 
     def __init__(self, url, title, level=0):
         self.url = url
@@ -22,7 +23,7 @@ class Page(object):
         self.level = level
 
     def process(self):
-        if self.processed or self.level > 5:
+        if self.processed or self.level > self.max_depth:
             print 'break'
             return False
         self.__process_url(self.url)
