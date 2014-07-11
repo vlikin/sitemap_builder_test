@@ -3,13 +3,13 @@ from optparse import OptionParser
 import urllib2
 import re
 import urlparse
-import pprint
+import csv
 
 MAX_DEPTH = 10
 MAX_LEVEL = 100
 
 parser = OptionParser()
-parser.add_option('-o', '--output-cvs', dest='filename', help='It writes the report to a file')
+parser.add_option('-o', '--output-csv', dest='filename', help='It writes the report to a file')
 parser.add_option('-d', '--depth', dest='depth', default=3, help='It defines a depth to go into.')
 (options, args) = parser.parse_args()
 
@@ -89,12 +89,36 @@ class Page(object):
             str = '%s%s' % (str, page.__str__())
 
         return str
+
+    def GetTable(self, parent=None):
+        if parent == None:
+            parent = self
+
+        row_list = []
+        row = [self.level, self.title, self.url, parent.url]
+        row_list.append(row)
+        for page in self.nested:
+            row_list.extend(page.GetTable(self))
+
+        return row_list
+
+    def SaveTable(self, filename):
+        table = self.GetTable()
+        with open(filename, 'wb') as csvfile:
+            writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for row in table:
+                writer.writerow(row)
+
 domain_name = 'http://saunalux.ch'
 Page.domain_name = domain_name
 page = Page.GetPage('/', 'Home')
 page.process()
-print page
+#print page
+#table = page.get_table(page)
+##print table
+#print len(table)
 
-print options, args
-
-content = '<a href="link">Text</a> fasd asdf <a href="link1">Text1</a> fasd asdf as <a href="link2">Text2</a>'
+if  hasattr(options, 'filename'):
+    page.SaveTable(options.filename)
+else:
+    print page
