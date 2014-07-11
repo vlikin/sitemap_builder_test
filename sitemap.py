@@ -2,8 +2,11 @@ __author__ = 'viktor'
 from optparse import OptionParser
 import urllib2
 import re
+import urlparse
+import pprint
 
 MAX_DEPTH = 10
+MAX_LEVEL = 100
 
 parser = OptionParser()
 parser.add_option('-o', '--output-cvs', dest='filename', help='It writes the report to a file')
@@ -28,52 +31,66 @@ class Page(object):
 
     processed_urls = []
     processed_pages = []
+    domain_name = ''
 
-    def __init__(self, url):
+    def __init__(self, url, title, level=0):
         self.url = url
+        self.title = ''
         self.nested = []
         self.connected_to = []
         self.processed = False
+        self.level = level
 
     def process(self):
+        if self.processed or self.level > 3:
+            print 'break'
+            return False
+        print 'process - %s' % self.url
         self.__process_url(self.url)
-        self.processed = True
 
     @staticmethod
-    def GetPage(url):
-        processed_page = list([page.url == url for page in Page.processed_pages])
-        if len(processed_page) > 1:
+    def GetPage(url, title='', level=0):
+        processed_page = [page for page in Page.processed_pages if page.url == url]
+        print processed_page
+        if len(processed_page) > 0:
             return processed_page[0]
         else:
-            page = Page(url)
+            print 'new page - %s' % url
+            page = Page(url, title, level)
             return page
 
 
     def __process_url(self, url):
-        print url
-        page = Page.GetPage(url)
-        if page.processed:
-            raise Exception('The page should not be processed before. Logical error.')
-
         nested_urls = self.__get_urls(url)
         for nested_url in nested_urls:
-            if not url.startswith('/'):
+            if not nested_url[0].startswith('/'):
                 continue
-            page = Page.GetPage(nested_url)
-            print page
-            page.connected_to.append(self)
-            self.nested.append(page)
-            self.processed_pages.append((url, page))
+            page = Page.GetPage(nested_url[0], nested_url[1], self.level + 1)
+            if page.processed:
+                page.connected_to.append(self)
+            else:
+                page.connected_to.append(self)
+                self.nested.append(page)
+                self.processed_pages.append(page)
+        self.processed = True
+        for page in self.nested:
+            page.process
 
-            page.process()
-
-    def __get_urls(self, url):
+    def __get_urls(self, relative_url):
+        url = urlparse.urljoin(self.domain_name, relative_url)
+        print 'load - %s' % relative_url
         html = urllib2.urlopen(url).read()
-        urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)', html)
+        urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"]>?([^<]+)', html)
         return urls
 
+    def __str__(self):
+        str = '%s - %s'
 
-page = Page.GetPage(domain_name)
+#domain_name = 'http://dsaua.org/'
+Page.domain_name = domain_name
+page = Page.GetPage('/', 'Home')
 page.process()
 
 print options, args
+
+content = '<a href="link">Text</a> fasd asdf <a href="link1">Text1</a> fasd asdf as <a href="link2">Text2</a>'
