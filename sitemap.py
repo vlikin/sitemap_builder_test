@@ -35,27 +35,24 @@ class Page(object):
 
     def __init__(self, url, title, level=0):
         self.url = url
-        self.title = ''
+        self.title = title
         self.nested = []
         self.connected_to = []
         self.processed = False
         self.level = level
 
     def process(self):
-        if self.processed or self.level > 3:
+        if self.processed or self.level > 5:
             print 'break'
             return False
-        print 'process - %s' % self.url
         self.__process_url(self.url)
 
     @staticmethod
     def GetPage(url, title='', level=0):
         processed_page = [page for page in Page.processed_pages if page.url == url]
-        print processed_page
         if len(processed_page) > 0:
             return processed_page[0]
         else:
-            print 'new page - %s' % url
             page = Page(url, title, level)
             return page
 
@@ -63,7 +60,7 @@ class Page(object):
     def __process_url(self, url):
         nested_urls = self.__get_urls(url)
         for nested_url in nested_urls:
-            if not nested_url[0].startswith('/'):
+            if not nested_url[0].startswith('/') or nested_url[0].strip() == '':
                 continue
             page = Page.GetPage(nested_url[0], nested_url[1], self.level + 1)
             if page.processed:
@@ -78,18 +75,25 @@ class Page(object):
 
     def __get_urls(self, relative_url):
         url = urlparse.urljoin(self.domain_name, relative_url)
-        print 'load - %s' % relative_url
         html = urllib2.urlopen(url).read()
-        urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"]>?([^<]+)', html)
-        return urls
+        urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
+        url_list = []
+        for url in urls:
+            url_list.append([url[0], re.sub(r'<[^>]*>', '', url[1])])
+
+        return url_list
 
     def __str__(self):
-        str = '%s - %s'
+        str = '%s%s - %s\n' % ('-' * self.level, self.title, self.url)
+        for page in self.nested:
+            str = '%s%s' % (str, page.__str__())
 
-#domain_name = 'http://dsaua.org/'
+        return str
+domain_name = 'http://saunalux.ch'
 Page.domain_name = domain_name
 page = Page.GetPage('/', 'Home')
 page.process()
+print page
 
 print options, args
 
