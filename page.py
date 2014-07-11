@@ -23,13 +23,18 @@ class Page(object):
         self.level = level
 
     def process(self):
+        '''
+            - It initializes the parsing process.
+        '''
         if self.processed or self.level > self.max_depth:
-            print 'break'
             return False
         self.__process_url(self.url)
 
     @staticmethod
     def GetPage(url, title='', level=0):
+        '''
+            - It creates or returns already an initialized page object.
+        '''
         processed_page = [page for page in Page.processed_pages if page.url == url]
         if len(processed_page) > 0:
             return processed_page[0]
@@ -37,8 +42,10 @@ class Page(object):
             page = Page(url, title, level)
             return page
 
-
     def __process_url(self, url):
+        '''
+            - It processes a page by the url.
+        '''
         nested_urls = self.__get_urls(url)
         for nested_url in nested_urls:
             if not nested_url[0].startswith('/') or nested_url[0].strip() == '':
@@ -55,6 +62,9 @@ class Page(object):
             page.process
 
     def __get_urls(self, relative_url):
+        '''
+            - It loads a page and extracts urls from.
+        '''
         url = urlparse.urljoin(self.domain_name, relative_url)
         html = urllib2.urlopen(url).read()
         urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
@@ -65,6 +75,9 @@ class Page(object):
         return url_list
 
     def __str__(self):
+        '''
+            - It represents the object in the string format.
+        '''
         str = '%d %s %s\n' % (self.level, '--' * self.level, self.url)
         for page in self.nested:
             str = '%s%s' % (str, page.__str__())
@@ -72,6 +85,9 @@ class Page(object):
         return str
 
     def GetTable(self, parent=None):
+        '''
+            - It goes through the relation tree and build the table.
+        '''
         if parent == None:
             parent = self
 
@@ -84,6 +100,9 @@ class Page(object):
         return row_list
 
     def SaveTable(self, filename):
+        '''
+            - It saves the processed table to a file.
+        '''
         table = self.GetTable()
         with open(filename, 'wb') as csvfile:
             writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
