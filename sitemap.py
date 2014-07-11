@@ -25,7 +25,7 @@ if int(options.depth) > MAX_DEPTH:
 print 'The script starts to parse the domain name - %s' % domain_name
 Page.domain_name = domain_name
 Page.max_depth = int(options.depth)
-page = Page.GetPage('/', 'Home')
+page = Page.GetPage('/')
 page.process()
 print 'The site has been parsed successfully.'
 

@@ -14,9 +14,8 @@ class Page(object):
     domain_name = ''
     max_depth = 3
 
-    def __init__(self, url, title, level=0):
+    def __init__(self, url):
         self.url = url
-        self.title = title
         self.nested = []
         self.connected_to = []
         self.processed = False
@@ -32,7 +31,7 @@ class Page(object):
         self.__process_url(self.url, level)
 
     @staticmethod
-    def GetPage(url, title='', level=0):
+    def GetPage(url):
         '''
             - It creates or returns already an initialized page object.
         '''
@@ -40,7 +39,7 @@ class Page(object):
         if len(processed_page) > 0:
             return processed_page[0]
         else:
-            page = Page(url, title, level)
+            page = Page(url)
             return page
 
     def __process_url(self, url, level=0):
@@ -49,9 +48,9 @@ class Page(object):
         '''
         nested_urls = self.__get_urls(url)
         for nested_url in nested_urls:
-            if not nested_url[0].startswith('/') or nested_url[0].strip() == '' or nested_url[0].startswith('//'):
+            if not nested_url.startswith('/') or nested_url.strip() == '' or nested_url.startswith('//'):
                 continue
-            page = Page.GetPage(nested_url[0], nested_url[1])
+            page = Page.GetPage(nested_url)
             if page.processed:
                 page.connected_to.append(self)
             else:
@@ -71,9 +70,8 @@ class Page(object):
             url = urlparse.urljoin(self.domain_name, relative_url)
             html = urllib2.urlopen(url).read()
             urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
-            url_list = []
-            for url in urls:
-                url_list.append([url[0], re.sub(r'<[^>]*>', '', url[1])])
+            return list([url[0] for url in urls])
+
         except:
             return []
 
