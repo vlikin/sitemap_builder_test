@@ -23,57 +23,57 @@ print 'The script starts to parse the domain name - %s' % domain_name
 
 class Page(object):
     '''
-        It parses a page and contains page data
+       - It parses a page and contains page data
     '''
 
     processed_urls = []
     processed_pages = []
 
-    def __init__(self, page_url):
-        self.page_url = page_url
-        self.nested_pages = []
+    def __init__(self, url):
+        self.url = url
+        self.nested = []
+        self.connected_to = []
+        self.processed = False
 
     def process(self):
-        self.__process_url(self.page_url)
+        self.__process_url(self.url)
+        self.processed = True
+
+    @staticmethod
+    def GetPage(url):
+        processed_page = list([page.url == url for page in Page.processed_pages])
+        if len(processed_page) > 1:
+            return processed_page[0]
+        else:
+            page = Page(url)
+            return page
+
 
     def __process_url(self, url):
-        if url in self.processed_urls:
-            return True
-        self.processed_urls.append(url)
+        print url
+        page = Page.GetPage(url)
+        if page.processed:
+            raise Exception('The page should not be processed before. Logical error.')
 
-        urls = self.__get_urls(url)
-        for url in urls:
-            if url.startswith('/'):
-                print url
+        nested_urls = self.__get_urls(url)
+        for nested_url in nested_urls:
+            if not url.startswith('/'):
+                continue
+            page = Page.GetPage(nested_url)
+            print page
+            page.connected_to.append(self)
+            self.nested.append(page)
+            self.processed_pages.append((url, page))
 
-
-class Sitemap(object):
-    '''
-        - It builds a sitemap by an url.
-    '''
-
-    def __init__(self, domain_name):
-        self.domain_name = domain_name
-        self.processed_urls = []
-
-    def start(self):
-        self.__process_url(self.domain_name)
-
-    def __process_url(self, url):
-        if url in self.processed_urls:
-            return True
-        self.processed_urls
-        urls = self.__get_urls(url)
-        for url in urls:
-            if url.startswith('/'):
-                print url
-
+            page.process()
 
     def __get_urls(self, url):
-        html = urllib2.urlopen(domain_name).read()
+        html = urllib2.urlopen(url).read()
         urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)', html)
         return urls
 
-sitemap_builder = Sitemap(domain_name)
-sitemap_builder.start()
+
+page = Page.GetPage(domain_name)
+page.process()
+
 print options, args
