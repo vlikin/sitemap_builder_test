@@ -24,12 +24,13 @@ if int(options.depth) > MAX_DEPTH:
 # It starts the validation process.
 print 'The script starts to parse the domain name - %s' % domain_name
 Page.domain_name = domain_name
-Page.max_depth = options.depth
+Page.max_depth = int(options.depth)
 page = Page.GetPage('/', 'Home')
 page.process()
+print 'The site has been parsed successfully.'
 
 # if a file is not define it outputs data to the screen.
 if  options.filename:
     page.SaveTable(options.filename)
 else:
-    print page
+    print page.to_string()

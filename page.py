@@ -20,15 +20,16 @@ class Page(object):
         self.nested = []
         self.connected_to = []
         self.processed = False
-        self.level = level
 
-    def process(self):
+    def process(self, level=0):
         '''
             - It initializes the parsing process.
         '''
-        if self.processed or self.level > self.max_depth:
-            return False
-        self.__process_url(self.url)
+        if self.processed:
+            return
+        if (level > Page.max_depth):
+            return
+        self.__process_url(self.url, level)
 
     @staticmethod
     def GetPage(url, title='', level=0):
@@ -42,15 +43,15 @@ class Page(object):
             page = Page(url, title, level)
             return page
 
-    def __process_url(self, url):
+    def __process_url(self, url, level=0):
         '''
             - It processes a page by the url.
         '''
         nested_urls = self.__get_urls(url)
         for nested_url in nested_urls:
-            if not nested_url[0].startswith('/') or nested_url[0].strip() == '':
+            if not nested_url[0].startswith('/') or nested_url[0].strip() == '' or nested_url[0].startswith('//'):
                 continue
-            page = Page.GetPage(nested_url[0], nested_url[1], self.level + 1)
+            page = Page.GetPage(nested_url[0], nested_url[1])
             if page.processed:
                 page.connected_to.append(self)
             else:
@@ -58,44 +59,52 @@ class Page(object):
                 self.nested.append(page)
                 self.processed_pages.append(page)
         self.processed = True
+
         for page in self.nested:
-            page.process
+            page.process(level + 1)
 
     def __get_urls(self, relative_url):
         '''
             - It loads a page and extracts urls from.
         '''
-        url = urlparse.urljoin(self.domain_name, relative_url)
-        html = urllib2.urlopen(url).read()
-        urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
-        url_list = []
-        for url in urls:
-            url_list.append([url[0], re.sub(r'<[^>]*>', '', url[1])])
+        try:
+            url = urlparse.urljoin(self.domain_name, relative_url)
+            html = urllib2.urlopen(url).read()
+            urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
+            url_list = []
+            for url in urls:
+                url_list.append([url[0], re.sub(r'<[^>]*>', '', url[1])])
+        except:
+            return []
 
         return url_list
 
-    def __str__(self):
+    def to_string(self, level=0):
         '''
             - It represents the object in the string format.
         '''
+        if level > Page.max_depth:
+            return
         str = '%d %s %s\n' % (self.level, '--' * self.level, self.url)
+        print str
         for page in self.nested:
-            str = '%s%s' % (str, page.__str__())
+            str = '%s%s' % (str, self.to_string(level + 1))
 
         return str
 
-    def GetTable(self, parent=None):
+    def GetTable(self, parent=None, level=0):
         '''
             - It goes through the relation tree and build the table.
         '''
+        if level > Page.max_depth:
+            return []
         if parent == None:
             parent = self
-
         row_list = []
-        row = [id(self), self.level, self.url, id(parent)]
+        row = [id(self), level, self.url, id(parent)]
         row_list.append(row)
         for page in self.nested:
-            row_list.extend(page.GetTable(self))
+            row_list.extend(page.GetTable(self, level+1))
 
         return row_list
 
