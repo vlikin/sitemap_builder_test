@@ -60,7 +60,7 @@ class Sitemap(object):
             url = urlparse.urljoin(self.domain_name, relative_url)
             html = urllib2.urlopen(url).read()
             urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
-            return list([url[0] for url in urls])
+            return [url[0] for url in urls]
 
         except:
             return []

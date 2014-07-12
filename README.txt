@@ -1,6 +1,6 @@
 The test task to get a job as a python developer :)
 
-This is a script that builds a sitemap of a site whith a defined depth.
+This is a script that builds a sitemap of a site with a defined depth.
 
 Use to save results to the file.
 python ./sitemap.py --depth=4 --output-csv=output.csv http://shelepen.com.ua
