@@ -20,7 +20,7 @@ class Page(object):
         """
         if level > max_depth:
             return ''
-        string = '|%d| %s %s\n' % (level, '--' * level, self.url)
+        string = '\n|%d| %s %s' % (level, '--' * level, self.url)
         for page in self.nested:
             string = '%s%s' % (string, page.to_string(max_depth, level + 1))
 

@@ -2,6 +2,7 @@ __author__ = 'viktor'
 
 from page import Page
 
+import logging
 import re
 import urllib2
 import urlparse
@@ -65,4 +66,5 @@ class Sitemap(object):
             return set([url[0] for url in urls])
 
         except:
+            logging.exception('Parsing the url - %s failed.')
             return []
