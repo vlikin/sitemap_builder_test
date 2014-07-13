@@ -32,8 +32,8 @@ page = sitemap.process('/')
 print 'The site has been parsed successfully.'
 
 # if a file is not define it outputs data to the screen.
-if  options.filename:
-    page.SaveTable(options.filename, int(options.depth))
+if options.filename:
+    page.save_table(options.filename, int(options.depth))
     print 'Results are saved to - %s' % options.filename
 else:
-    print page.to_string()
+    print page.to_string(int(options.depth))

@@ -6,6 +6,8 @@ import re
 import urllib2
 import urlparse
 
+
+# noinspection PyBroadException
 class Sitemap(object):
 
     def __init__(self, domain_name, max_depth=3):
@@ -14,9 +16,9 @@ class Sitemap(object):
         self.max_depth = max_depth
 
     def get_page(self, url):
-        '''
+        """
             - It creates or returns already an initialized page object.
-        '''
+        """
         processed_page = [page for page in self.processed_pages if page.url == url]
         if len(processed_page) > 0:
             return processed_page[0]
@@ -24,15 +26,15 @@ class Sitemap(object):
             page = Page(url)
             return page
 
-    def process(self, url, level=0):
+    def process(self, url):
         page = self.get_page(url)
         self.__process_page(page)
         return page
 
     def __process_page(self, page, level=0):
-        '''
+        """
             - It processes a page by the url.
-        '''
+        """
         if page.processed or level > self.max_depth:
             return
 
@@ -53,17 +55,14 @@ class Sitemap(object):
             self.__process_page(nested_page, level + 1)
 
     def __get_urls(self, relative_url):
-        '''
+        """
             - It loads a page and extracts urls from.
-        '''
+        """
         try:
             url = urlparse.urljoin(self.domain_name, relative_url)
             html = urllib2.urlopen(url).read()
             urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
-            return [url[0] for url in urls]
+            return set([url[0] for url in urls])
 
         except:
             return []
-
-        return url_list
-
