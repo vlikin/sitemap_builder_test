@@ -47,7 +47,7 @@ class Page(object):
             - It saves the processed table to a file.
         """
         table = self.get_table(max_depth=max_depth)
-        with open(filename, 'wb') as csvfile:
-            writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        with open(filename, 'wb') as csv_file:
+            writer = csv.writer(csv_file, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for row in table:
                 writer.writerow(row)

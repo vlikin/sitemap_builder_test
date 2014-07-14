@@ -29,17 +29,17 @@ class Sitemap(object):
 
     def process(self, url):
         page = self.get_page(url)
-        self.__process_page(page)
+        self._process_page(page)
         return page
 
-    def __process_page(self, page, level=0):
+    def _process_page(self, page, level=0):
         """
             - It processes a page by the url.
         """
         if page.processed or level > self.max_depth:
             return
 
-        nested_urls = self.__get_urls(page.url)
+        nested_urls = self._get_urls(page.url)
         for nested_url in nested_urls:
             if not nested_url.startswith('/') or nested_url.strip() == '' or nested_url.startswith('//'):
                 continue
@@ -53,18 +53,24 @@ class Sitemap(object):
         page.processed = True
 
         for nested_page in page.nested:
-            self.__process_page(nested_page, level + 1)
+            self._process_page(nested_page, level + 1)
 
-    def __get_urls(self, relative_url):
+    def _get_urls(self, relative_url):
         """
             - It loads a page and extracts urls from.
         """
         try:
-            url = urlparse.urljoin(self.domain_name, relative_url)
-            html = urllib2.urlopen(url).read()
-            urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
-            return set([url[0] for url in urls])
+            if self.domain_name[:7] == 'file://':
+                url = self.domain_name[7:] + relative_url
+                html = open(url, 'r').read()
+            else:
+                url = urlparse.urljoin(self.domain_name, relative_url)
+                html = urllib2.urlopen(url).read()
 
-        except:
-            logging.exception('Parsing the url - %s failed.')
+            urls = re.findall(r'<a\s{1,3}href=[\'"]?([^\'" >]+)[\'"][^>]*>?([^<]+)', html)
+
+            return sorted(list(set([url[0] for url in urls])))
+
+        except Exception, e:
+            logging.exception('Parsing the url - %s failed.' % e)
             return []
