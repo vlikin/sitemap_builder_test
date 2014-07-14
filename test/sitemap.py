@@ -6,7 +6,7 @@ import unittest
 from lib.sitemap import Sitemap
 
 
-class TestSequenceFunctions(unittest.TestCase):
+class TestSitemap(unittest.TestCase):
 
     def setUp(self):
         self.domain_name = 'file://' + os.path.abspath(os.path.dirname(__file__) + '/test_data')
